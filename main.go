@@ -6,6 +6,7 @@ import (
     "sync"
     "github.com/prometheus/client_golang/prometheus"
     "github.com/prometheus/client_golang/prometheus/promhttp"
+    dto "github.com/prometheus/client_model/go"
 )
 
 var (
@@ -39,6 +40,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
         }
     }
 
+    var metric dto.Metric
+    stressor.Write(&metric)
+
     fmt.Fprintf(w, `<html>
         <head><title>Stressor Metric</title></head>
         <body>
@@ -46,5 +50,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
             <form method="post" action="?action=increase"><button type="submit">Increase</button></form>
             <form method="post" action="?action=decrease"><button type="submit">Decrease</button></form>
         </body>
-    </html>`, stressor)
+    </html>`, metric.GetGauge().GetValue())
 }
+
