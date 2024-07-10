@@ -4,38 +4,30 @@ FROM registry.access.redhat.com/ubi8/ubi:latest AS builder
 # Install necessary development tools
 RUN yum install -y golang git && yum clean all
 
-# Create and switch to a non-root user for the build process
-RUN useradd -m -s /bin/bash tiriyon
-USER tiriyon
-WORKDIR /home/tiriyon
-
 # Set up the Go environment
-ENV GOPATH=/home/tiriyon/go
+ENV GOPATH=/root/go
 ENV PATH=$GOPATH/bin:/usr/local/go/bin:$PATH
 
 # Copy the source code
-COPY --chown=tiriyon:tiriyon . .
+COPY . .
 
 # Build the Go application
-RUN go build -o stressor-app
+RUN go build -o /app/stressor-app
 
 # Final stage
 FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
 
-# Create a new user 'tiriyon'
-RUN microdnf install shadow-utils && microdnf clean all
-RUN useradd -m -s /bin/bash tiriyon
-
 # Copy the built application from the builder stage
-COPY --from=builder /home/tiriyon/stressor-app /home/tiriyon/stressor-app
+COPY --from=builder /app/stressor-app /app/stressor-app
+
+# Set the correct permissions for the application directory
+RUN chgrp -R 0 /app && chmod -R g=u /app
 
 # Switch to a non-root user
-USER tiriyon
-WORKDIR /home/tiriyon
+USER 1001
 
 # Expose the application port
 EXPOSE 8080
 
 # Command to run the application
-CMD ["/home/tiriyon/stressor-app"]
-
+CMD ["/app/stressor-app"]
