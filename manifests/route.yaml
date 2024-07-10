@@ -1,0 +1,9 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: stressor-app
+spec:
+  to:
+    kind: Service
+    name: stressor-app
+  host: stressor-app.apps.ocpnp.fibi.corp
