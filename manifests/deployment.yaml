@@ -12,11 +12,16 @@ spec:
       labels:
         app: stressor-app
     spec:
+      serviceAccountName: stressor-app-sa
+      serviceAccount: stressor-app-sa
       containers:
       - name: stressor-app
-        image: registry.fibi.corp/sys/stressor-app:v0.0.1
+        image: *****
         ports:
-        - containerPort: 8080
+          - name: http
+            containerPort: 8080
+          - name: metrics
+            containerPort: 9249
         resources:
           limits:
             cpu: "500m"
@@ -24,6 +29,3 @@ spec:
           requests:
             cpu: "200m"
             memory: "128Mi"
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 1001
