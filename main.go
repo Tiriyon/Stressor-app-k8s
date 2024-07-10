@@ -22,10 +22,23 @@ func init() {
 }
 
 func main() {
-    http.HandleFunc("/", handler)
-    http.Handle("/metrics", promhttp.Handler())
-    fmt.Println("Serving on :8080")
-    http.ListenAndServe(":8080", nil)
+    // Serve the main application
+    go func() {
+        http.HandleFunc("/", handler)
+        fmt.Println("Serving application on :8080")
+        http.ListenAndServe(":8080", nil)
+    }()
+
+    // Serve metrics on a different port
+    go func() {
+        metricsMux := http.NewServeMux()
+        metricsMux.Handle("/metrics", promhttp.Handler())
+        fmt.Println("Serving metrics on :9249")
+        http.ListenAndServe(":9249", metricsMux)
+    }()
+
+    // Block forever
+    select {}
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -111,3 +124,4 @@ func handler(w http.ResponseWriter, r *http.Request) {
     </html>
     `, percentage*180/100-90, value) // Calculate the rotation angle for the gauge line
 }
+
